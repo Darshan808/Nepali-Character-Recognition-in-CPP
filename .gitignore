@@ -1,0 +1,8 @@
+*.exe
+model
+metrics
+.ipynb_checkpoints
+*.py
+*.ipynb
+.vscode
+images
