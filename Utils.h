@@ -107,7 +107,7 @@ public:
     {
         // Find the size and max value in Y
         size_t size = Y.size();
-        int max_val = *max_element(Y.begin(), Y.end());
+        int max_val = 45;
 
         // Initialize the one-hot encoded matrix with zeros
         vector<vector<float>> one_hot_Y(max_val + 1, vector<float>(size, 0.0));

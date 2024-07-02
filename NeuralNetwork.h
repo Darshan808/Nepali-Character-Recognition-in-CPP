@@ -6,6 +6,13 @@
 
 using namespace std;
 
+vector<double> train_loss;
+vector<double> train_accuracy;
+vector<double> val_loss;
+vector<double> val_accuracy;
+vector<double> val_2_loss;
+vector<double> val_2_accuracy;
+
 class Layer
 {
 public:
@@ -44,7 +51,7 @@ class NeuralNetwork
 {
 private:
     // Hyperparameters
-    float alpha = 0.5;
+    float alpha = 0.1;
     // BackProp Variables
     vector<float> prev_dC_das;
     vector<float> y_hats;
@@ -81,8 +88,9 @@ public:
         matOrg = Utils::transposeMatrix(mat);
     }
     vector<Layer *> layers;
-    NeuralNetwork(vector<int> neuronCount, string fileName="na")
+    NeuralNetwork(vector<int> neuronCount, float alpha, string fileName="na")
     {
+        this->alpha = alpha;
         for (int i = 0; i < neuronCount.size() - 1; i++)
         {
             layers.push_back(new Layer(neuronCount[i], neuronCount[i + 1]));
@@ -211,83 +219,117 @@ public:
         return loss;
     }
 
-    void saveLoss(double loss, string type, string filename){
+    // void saveLoss(double loss, string type, string filename){
+    //     std::ios_base::openmode mode = std::ios::app;
+    //     std::ofstream outFile(filename, mode);
+    //     if (!outFile)
+    //     {
+    //         std::cerr << "Error opening file for writing Loss!" << std::endl;
+    //         return;
+    //     }
+    //     if (type == "train")
+    //     {
+    //         outFile << "train_loss: " << loss << std::endl;
+    //     }
+    //     else if(type == "val")
+    //     {
+    //         outFile << "val_loss: " << loss << std::endl;
+    //     }
+    //     else if(type == "val_2")
+    //     {
+    //         outFile << "val_2_loss: " << loss << std::endl;
+    //     }
+    //     else
+    //     {
+    //         cout<<"Unknown Mode of Loss!"<<endl;
+    //     }
+    //     outFile.close();
+    // }
+    void saveLosses(){
         std::ios_base::openmode mode = std::ios::app;
-        std::ofstream outFile(filename, mode);
+        std::ofstream outFile("metrics/loss.txt", mode);
         if (!outFile)
         {
             std::cerr << "Error opening file for writing Loss!" << std::endl;
             return;
         }
-        if (type == "train")
+        outFile << "Train loss: ";
+        for (const auto &loss : train_loss)
         {
-            outFile << "train_loss: " << loss << std::endl;
+            outFile << loss << ' ';
         }
-        else if(type == "val")
+        outFile << std::endl;
+
+        outFile << "Validation loss: ";
+        for (const auto &loss : val_loss)
         {
-            outFile << "val_loss: " << loss << std::endl;
+            outFile << loss << ' ';
         }
-        else if(type == "val_2")
+        outFile << std::endl;
+        outFile << "Validation 2 loss: ";
+        for (const auto &loss : val_2_loss)
         {
-            outFile << "val_2_loss: " << loss << std::endl;
+            outFile << loss << ' ';
         }
-        else
-        {
-            cout<<"Unknown Mode of Loss!"<<endl;
-        }
+        outFile << std::endl;
         outFile.close();
     }
-
-    void saveAccuracy(float accuracy, string type, string filename){
+    void saveAccuracies(){
         std::ios_base::openmode mode = std::ios::app;
-        std::ofstream outFile(filename, mode);
+        std::ofstream outFile("metrics/accuracy.txt", mode);
         if (!outFile)
         {
             std::cerr << "Error opening file for writing Loss!" << std::endl;
             return;
         }
-        if (type == "train")
+        outFile << "Train accuracy: ";
+        for (const auto &accuracy : train_accuracy)
         {
-            outFile << "train_accuracy: " << accuracy << std::endl;
+            outFile << accuracy << ' ';
         }
-        else if(type == "val")
+        outFile << std::endl;
+
+        outFile << "Validation accuracy: ";
+        for (const auto &accuracy : val_accuracy)
         {
-            outFile << "val_accuracy: " << accuracy << std::endl;
+            outFile << accuracy << ' ';
         }
-        else if(type == "val_2")
+        outFile << std::endl;
+        outFile << "Validation 2 accuracy: ";
+        for (const auto &accuracy : val_2_accuracy)
         {
-            outFile << "val_2_accuracy: " << accuracy << std::endl;
+            outFile << accuracy << ' ';
         }
-        else
-        {
-            cout<<"Unknown Mode of Accuracy!"<<endl;
-        }
+        outFile << std::endl;
         outFile.close();
     }
-
-    void gradient_descent(vector<vector<float>> &X, vector<int> &Y, int iterations)
+    void gradient_descent(vector<vector<float>> &X, vector<int> &Y, int iterations, bool verbose=false)
     {
         int ll = layers.size() - 1;
         double loss = 0;
         int batch_size = X[0].size();
+        float accuracy;
         for (int i = 0; i < iterations; i++)
         {
             vector<vector<float>> predictions = feedForward(X);
-            double loss_i = getCrossEntropyLoss(Y, predictions);
-            loss += loss_i;
-            cout<<"Training data Loss: "<<loss_i<<endl; //Training Loss!
             backward_prop(X, Y);
             update_params();
-            if ((i + 1) % 1 == 0)
-            {
-                cout << "Iteration: " << i + 1 << endl;
-                float accuracy = Utils::getAccuracy(get_predictions(layers[ll]->activations), Y);
-                cout << "Accuracy: " << accuracy << endl;
+            double loss_i = getCrossEntropyLoss(Y, predictions);
+            loss += loss_i;
+            if(verbose){
+                cout<<"Training data Loss: "<<loss_i<<endl; //Training Loss!
+                if ((i + 1) % 1 == 0)
+                {
+                    // cout << "Iteration: " << i + 1 << endl;
+                    accuracy = Utils::getAccuracy(get_predictions(layers[ll]->activations), Y);
+                    cout << "Training data Accuracy: " << accuracy << endl;
+                }
             }
         }
-        saveLoss(loss,"train","metrics/loss.txt");
-        float accuracy = Utils::getAccuracy(get_predictions(layers[ll]->activations), Y);
-        saveAccuracy(accuracy,"train","metrics/accuracy.txt");
+        train_loss.push_back(loss);
+        train_accuracy.push_back(accuracy);
+        // saveLoss(loss,"train","metrics/loss.txt");
+        // saveAccuracy(accuracy,"train","metrics/accuracy.txt");
     }
 
     void saveLayer(vector<vector<float>> &weights, vector<vector<float>> &biases, std::string &filename, bool reset = false)
@@ -373,30 +415,47 @@ public:
                 return false;
             }
         }
+        return true;
     }
-    void train(vector<vector<float>> X_train, vector<int> Y_train, vector<vector<float>> X_val, vector<int> Y_val, vector<vector<float>> X_val_2, vector<int> Y_val_2, int iterations, string fileName = "model.txt", bool save=false)
+    void saveNetwork(string fileName){
+        this->saveLayer(this->layers[0]->weights, this->layers[0]->biases, fileName, true);
+        for (int i = 1; i < this->layers.size(); i++)
+        {
+            this->saveLayer(this->layers[i]->weights, this->layers[i]->biases, fileName);
+        }
+        saveLosses();
+        saveAccuracies();
+    }
+    void train(vector<vector<float>> X_train, vector<int> Y_train, vector<vector<float>> X_val, vector<int> Y_val, vector<vector<float>> X_val_2, vector<int> Y_val_2, int iterations,bool verbose = false, string fileName = "model.txt", bool save=false)
     {
-        gradient_descent(X_train, Y_train, iterations);
+        gradient_descent(X_train, Y_train, iterations,verbose);
         //Get validation loss here! (for one batch)
         vector<vector<float>> predictions = this->feedForward(X_val);
         double loss = this->getCrossEntropyLoss(Y_val,predictions);
-        cout<<"Validation data loss: "<<loss<<endl;
-        saveLoss(loss,"val","metrics/loss.txt");
+        // saveLoss(loss,"val","metrics/loss.txt");
         float accuracy = Utils::getAccuracy(get_predictions(layers[layers.size()-1]->activations), Y_val);
-        saveAccuracy(accuracy, "val", "metrics/accuracy.txt");
+        val_loss.push_back(loss);
+        val_accuracy.push_back(accuracy);
+        if(verbose){
+            cout<<"Validation data loss: "<<loss<<endl;
+            cout<<"Validation data accuracy: "<<accuracy<<endl;
+        }
+        // saveAccuracy(accuracy, "val", "metrics/accuracy.txt");
 
         predictions = this->feedForward(X_val_2);
         loss = this->getCrossEntropyLoss(Y_val_2,predictions);
-        cout << "Validation data 2 loss: " << loss << endl << endl;
-        saveLoss(loss,"val_2","metrics/loss.txt");
+        // saveLoss(loss,"val_2","metrics/loss.txt");
+        val_2_loss.push_back(loss);
         accuracy = Utils::getAccuracy(get_predictions(layers[layers.size()-1]->activations), Y_val_2);
-        saveAccuracy(accuracy, "val_2", "metrics/accuracy.txt");
+        val_2_accuracy.push_back(accuracy);
+        if(verbose){
+            cout << "Validation data 2 loss: " << loss << endl;
+            cout<<"Validation data 2 accuracy: "<<accuracy<<endl<<endl;
+        }
+        // saveAccuracy(accuracy, "val_2", "metrics/accuracy.txt");
 
         if(save){
-            this->saveLayer(this->layers[0]->weights,this->layers[0]->biases,fileName,true);
-            for(int i=1;i<this->layers.size();i++){
-                this->saveLayer(this->layers[i]->weights,this->layers[i]->biases,fileName);
-            }
+            saveNetwork(fileName);
         }
     }
     pair<int,float> predict(vector<vector<float>> X){

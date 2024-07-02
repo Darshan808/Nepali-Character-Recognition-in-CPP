@@ -23,8 +23,8 @@ int main()
     std::vector<std::vector<float>> train_data;
     std::vector<std::vector<float>> val_data;
     std::vector<std::vector<float>> val_2_data;
-    Danfe::loadData(val_data, "dataset/cv_data/cv.txt", true);
-    Danfe::loadData(val_2_data, "dataset/cv_data/cv_2.txt", true);
+    Danfe::loadData(val_data, "dataset/cv_data/cv.txt");
+    Danfe::loadData(val_2_data, "dataset/cv_data/cv_2.txt");
 
     vector<vector<float>> X_train;
     vector<int> Y_train;
@@ -32,21 +32,21 @@ int main()
     vector<int> Y_val;
     vector<vector<float>> X_val_2;
     vector<int> Y_val_2;
-    Danfe::xySplit(val_data, X_val, Y_val, true);
-    Danfe::xySplit(val_2_data, X_val_2, Y_val_2, true);
+    Danfe::xySplit(val_data, X_val, Y_val);
+    Danfe::xySplit(val_2_data, X_val_2, Y_val_2);
 
     // Training Network
-    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 46}, "model/v1.txt");
-    int NUM_BATCHES = 78;
+    NeuralNetwork *NN = new NeuralNetwork({1024, 512, 256, 46});
+    int NUM_BATCHES = 1;
     bool save;
     for(int i=0;i<NUM_BATCHES;i++){
         cout<<"Running Batch "<<i+1<<endl;
-        Danfe::loadData(train_data,"dataset/train_batches/batch_"+to_string(i)+".txt",true);
+        Danfe::loadData(train_data,"dataset/train_batches/train_batch_"+to_string(i)+".txt");
         // Splitting data
-        Danfe::xySplit(train_data,X_train,Y_train,true);
+        Danfe::xySplit(train_data,X_train,Y_train);
         // NeuralNetwork *NN = new NeuralNetwork({1024, 10, 47}, "my_model.txt");
         save = i == NUM_BATCHES-1;
-        NN->train(X_train, Y_train, X_val, Y_val, X_val, Y_val ,1,"model/v1.txt",save);
+        NN->train(X_train, Y_train, X_val, Y_val, X_val, Y_val ,1,"model/just.txt",save);
         X_train.clear();
         Y_train.clear();
         train_data.clear();
