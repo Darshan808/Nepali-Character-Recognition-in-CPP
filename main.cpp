@@ -27,7 +27,7 @@ int main()
     // Danfe::xySplit(data,X_train,Y_train,true);
 
     //Training Network
-    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 47},"my_model.txt");
+    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 10 46}, 0.5, "model/10_10_0.5.txt");
     // NN->train(X_train, Y_train,30,"my_model.txt");
     //Inside train, use gradient descent and save weights + biases
     //Learn about batch,epochs,type of gradient descent
@@ -42,7 +42,7 @@ int main()
     cout<<"Predicted ";
     // // std::locale::global(std::locale(""));
     // // std::wcout.imbue(std::locale());
-    cout<<romanizedLabels[p.first - 1];
+    cout<<romanizedLabels[p.first];
     cout<<" with confidence "<<p.second<<endl;
 
     //To do

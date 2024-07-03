@@ -74,9 +74,9 @@ void train_model(NeuralNetwork *NN, const std::pair<std::vector<std::vector<floa
 
 int main()
 {
-    int max_batches = 1221;
+    int max_batches = 610;
     load_val_data();
-    NeuralNetwork* NN = new NeuralNetwork({1024,256,46},0.01);
+    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 46}, 0.000001, "model/128_10_0.5.txt");
     std::thread loader_thread(batch_loader, max_batches);
 
     // Main thread starts training
@@ -89,7 +89,7 @@ int main()
                     { return !batch_queue.empty() || done_loading; });
 
             if (batch_queue.empty() && done_loading){
-                NN->saveNetwork("model/512_256.txt");
+                NN->saveNetwork("model/128_10_0.5.txt");
                 break;
             }
 
