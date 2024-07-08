@@ -1,8 +1,5 @@
 *.exe
-model
-metrics
-.ipynb_checkpoints
-*.py
-*.ipynb
+piethorn
+build
 .vscode
-images
+model/metrics/*txt
