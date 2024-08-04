@@ -21,6 +21,8 @@ public:
     }
     static vector<vector<double>> matMul(const vector<vector<double>> &mat1, const vector<vector<double>> &mat2)
     {
+        cout<<mat1.size()<<" "<<mat1[0].size()<<endl;
+        cout<<mat2.size()<<" "<<mat2[0].size()<<endl;
         if (mat1[0].size() != mat2.size())
         {
             throw runtime_error("Size of mat1 does not match size of mat2");

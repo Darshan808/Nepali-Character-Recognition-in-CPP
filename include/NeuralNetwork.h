@@ -13,18 +13,10 @@ vector<double> val_accuracy;
 vector<double> val_2_loss;
 vector<double> val_2_accuracy;
 
-class Layer
-{
-public:
+//Base class for all Layers
+class LayerParent {
+    public:
     vector<vector<double>> weights, biases, rawOutputs, activations, dC_dWs, dC_dBs;
-    Layer(int inputCount, int outputCount)
-    {
-        for (int i = 0; i < outputCount; i++)
-        {
-            weights.push_back(Utils::generateRandomVector(inputCount, -0.5, 0.5));
-            biases.push_back(Utils::generateRandomVector(1, -1, 1));
-        }
-    }
     int getNumberOfNeurons()
     {
         return biases.size();
@@ -47,6 +39,43 @@ public:
     }
 };
 
+//A simple dense layer
+class Layer: public LayerParent
+{
+public:
+    Layer(int inputCount, int outputCount)
+    {
+        for (int i = 0; i < outputCount; i++)
+        {
+            weights.push_back(Utils::generateRandomVector(inputCount, -0.5, 0.5));
+            biases.push_back(Utils::generateRandomVector(1, -1, 1));
+        }
+    }
+};
+
+//Dropout Layer: Randomly sets activations to 0 according to dropout rate
+class DropOut: public LayerParent{
+    private:
+    double dropOutRate;
+    DropOut(double dropOutRate){
+        this->dropOutRate = dropOutRate;
+    }
+    void dropOut(){
+        vector<double> rand = Utils::generateRandomVector(activations.size()*0.25,0,activations.size()-1);
+        for(int i=0;i<rand.size();i++){
+            activations[i][0] = 0;
+        }
+    }
+};
+
+//Normalizes data before sending to next layer
+class BatchNormalization: public LayerParent{
+    void normalize(){
+        Utils::normalizeData(activations);
+    }
+};
+
+//Main class which implements Neural Network
 class NeuralNetwork
 {
 private:
@@ -56,6 +85,8 @@ private:
     vector<double> prev_dC_das;
     vector<double> y_hats;
     vector<vector<double>> activations;
+
+    //max(0.1*val, val)
     void leakyRelu(vector<vector<double>> &mat)
     {
         for (auto &row : mat)
@@ -68,6 +99,8 @@ private:
     }
 
 public:
+    //Returns probability distribution from raw outputs
+    //Ai/sum(A)
     void softmax(vector<vector<double>> &matOrg)
     {
         vector<vector<double>> mat = Utils::transposeMatrix(matOrg);
@@ -88,6 +121,7 @@ public:
         matOrg = Utils::transposeMatrix(mat);
     }
     vector<Layer *> layers;
+    //Constructor to initialize Neural Network
     NeuralNetwork(vector<int> neuronCount, double alpha, string fileName = "na")
     {
         this->alpha = alpha;
@@ -95,7 +129,6 @@ public:
         {
             layers.push_back(new Layer(neuronCount[i], neuronCount[i + 1]));
         }
-
         if (fileName != "na")
         {
             ifstream inFile("C:\\Users\\Darshan\\Desktop\\OOP project\\model\\saved\\"+ fileName);
@@ -111,6 +144,7 @@ public:
             inFile.close();
         }
     }
+    //A = Wi.A(i-1) + Bi
     vector<vector<double>> feedForward(vector<vector<double>> input)
     {
         for (int i = 0; i < layers.size(); i++)
@@ -130,6 +164,8 @@ public:
         }
         return layers[layers.size() - 1]->activations;
     }
+
+    //derivative of Leaky Relu
     vector<vector<double>> deriv_LeakyReLU(const vector<vector<double>> &mat)
     {
         vector<vector<double>> derivative(mat.size(), vector<double>(mat[0].size()));
@@ -323,6 +359,8 @@ public:
             backward_prop(X, Y);
             update_params();
             double loss_i = getCrossEntropyLoss(Y, predictions);
+            //Applying L1 regularization L = l+w
+            loss_i = layers[i]->getWeights()[i][0];
             loss += loss_i;
             if (verbose)
             {
@@ -392,10 +430,6 @@ public:
             if (line[0] == 'W' | line[0] == 'B')
             {
                 iss >> type >> row >> col; // Read the first character and integer from the line
-                if (type == 'W')
-                    W.resize(row, std::vector<double>(col));
-                if (type == 'B')
-                    B.resize(row, std::vector<double>(col));
                 i = 0, j = 0;
                 continue;
             }
@@ -477,8 +511,10 @@ public:
         vector<vector<double>> predictions = feedForward(X);
         int index = 0;
         double confidence = predictions[index][0];
+        cout<<confidence<<endl;
         for (int i = 1; i < predictions.size(); i++)
         {
+            cout<<predictions[i][0]<<endl;
             if (predictions[i][0] > predictions[index][0])
             {
                 index = i;

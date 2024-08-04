@@ -33,56 +33,13 @@ private:
     std::vector<double> prev_dC_das;
     std::vector<double> y_hats;
     std::vector<std::vector<double>> activations;
-    void leakyRelu(std::vector<std::vector<double>> &mat)
-    {
-        for (auto &row : mat)
-        {
-            for (auto &val : row)
-            {
-                val = std::max(0.1f * val, val);
-            }
-        }
-    }
+    void leakyRelu(std::vector<std::vector<double>> &mat);
 
 public:
-    void softmax(vector<vector<double>> &matOrg)
-    {
-        vector<vector<double>> mat = Utils::transposeMatrix(matOrg);
-        for (auto &row : mat)
-        {
-            vector<double> exp_values(row.size());
-            double max_el = *max_element(row.begin(), row.end());
-            for (size_t i = 0; i < row.size(); ++i)
-            {
-                exp_values[i] = exp(row[i] - max_el);
-            }
-            double sum_exp_values = accumulate(exp_values.begin(), exp_values.end(), 0.0);
-            for (size_t i = 0; i < row.size(); ++i)
-            {
-                row[i] = exp_values[i] / sum_exp_values;
-            }
-        }
-        matOrg = Utils::transposeMatrix(mat);
-    }
-    vector<Layer *> layers;
-    NeuralNetwork(vector<int> neuronCount, double alpha, string fileName = "na")
-    {
-        this->alpha = alpha;
-        for (int i = 0; i < neuronCount.size() - 1; i++)
-        {
-            layers.push_back(new Layer(neuronCount[i], neuronCount[i + 1]));
-        }
+    void softmax(std::vector<std::vector<double>> &matOrg);
 
-        if (fileName != "na")
-        {
-            ifstream inFile(fileName);
-            for (int i = 0; i < this->layers.size(); i++)
-            {
-                this->loadLayer(inFile, layers[i]->weights, layers[i]->biases);
-            }
-            inFile.close();
-        }
-    }
+    vector<Layer *> layers;
+    NeuralNetwork(vector<int> neuronCount, double alpha, string fileName = "na");
     vector<vector<double>> feedForward(vector<vector<double>> input)
     {
         for (int i = 0; i < layers.size(); i++)

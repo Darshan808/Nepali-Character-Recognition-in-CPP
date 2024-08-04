@@ -13,6 +13,7 @@ using namespace std;
 
 class myGraphics{
     private:
+    string modelChoosen = "num";
     Font customFont;
     Font customFont24;
     Color lightGreen;
@@ -21,16 +22,20 @@ class myGraphics{
     Rectangle uploadRect;
     Texture qmTexture;
     Rectangle qmRect;
+    Texture switchTexture;
+    Rectangle switchRect;
 
     // Load image and create texture
     Texture2D inputTexture;
     vector<Texture2D> outputTextureNum;
+    vector<Texture2D> outputTextureChar;
     std::string filename;
 
     // Assuming Rectangle and Vector2 are defined types in your project
     Rectangle sourceRect;
     Rectangle destRect;
     Rectangle destRect2;
+    Rectangle swtichDestRect;
     Rectangle inputImgRect;
     Vector2 origin;
 
@@ -38,7 +43,9 @@ class myGraphics{
     char key;
 
     Rectangle buttonRect; // x, y, width, height
+    Rectangle modelButtonRect; // x, y, width, height
     Color buttonColor;
+    Color modelButtonColor;
     bool buttonClicked;
 
     bool isAnimating;
@@ -48,7 +55,7 @@ class myGraphics{
     bool predictionMade;
     int PREDICTION;
     float CONFIDENCE;
-    NeuralNetwork *NN;
+    NeuralNetwork *NN_num, *NN_char;
     vector<vector<double>> predict_X;
 
 public:
@@ -68,6 +75,9 @@ public:
         outImg = LoadImage("C:\\Users\\Darshan\\Desktop\\OOP project\\assets\\misc\\qm.png");
         qmTexture = LoadTextureFromImage(outImg);
         qmRect = {0, 0, static_cast<float>(qmTexture.width), static_cast<float>(qmTexture.height)};
+        outImg = LoadImage("C:\\Users\\Darshan\\Desktop\\OOP project\\assets\\misc\\switch_small.png");
+        switchTexture = LoadTextureFromImage(outImg);
+        switchRect = {0, 0, static_cast<float>(switchTexture.width), static_cast<float>(switchTexture.height)};
 
         // Load image and create texture
         outputTextureNum.resize(10);
@@ -79,16 +89,29 @@ public:
             outputTextureNum[i] = LoadTextureFromImage(outImg);
             UnloadImage(outImg); // Unload image data from RAM as it's now in VRAM
         }
+        //Load characters
+        outputTextureChar.resize(36);
+        for(int i=0;i<36;i++){
+            filename = "C:\\Users\\Darshan\\Desktop\\OOP project\\assets\\0_35\\" + std::to_string(i) + ".png";
+            const char *filename_cstr = filename.c_str();
+            outImg = LoadImage(filename_cstr);
+            outputTextureChar[i] = LoadTextureFromImage(outImg);
+            UnloadImage(outImg); // Unload image data from RAM as it's now in VRAM
+        }
 
         // Assuming Rectangle and Vector2 are defined types in your project
         sourceRect = {0, 0, static_cast<float>(outputTextureNum[0].width), static_cast<float>(outputTextureNum[0].height)};
         destRect = {20, 285, 150, 150};
         destRect2 = {1080, 285, 150, 150};
         origin = {0, 0};
+        
 
         buttonRect = {540, 650, 300, 50}; // x, y, width, height
+        modelButtonRect = {928, 50, 300, 50}; // x, y, width, height
         buttonColor = GRAY;
+        modelButtonColor = GRAY;
         buttonClicked = false;
+        swtichDestRect = {modelButtonRect.x + modelButtonRect.width - 50 , modelButtonRect.y+5,modelButtonRect.height-10, modelButtonRect.height-10};
 
         isAnimating = false;
         animationTime = 0.0;
@@ -97,13 +120,32 @@ public:
         predictionMade = false;
         PREDICTION = 0;
         CONFIDENCE = -1;
-        NN = new NeuralNetwork({1024, 10, 10}, 0.0001, "numbers.txt");
+        NN_num = new NeuralNetwork({1024, 64, 32, 10}, 0.0001, "man.txt");
+        NN_char = new NeuralNetwork({1024, 10, 36}, 0.001, "alpha.txt");
 
         while (WindowShouldClose() == false)
         {
 
             Vector2 mousePoint = GetMousePosition();
             bool mouseOverButton = CheckCollisionPointRec(mousePoint, buttonRect);
+            bool mouseOverModelButton = CheckCollisionPointRec(mousePoint, modelButtonRect);
+
+            if (mouseOverModelButton)
+            {
+                modelButtonColor = LIGHTGRAY;
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                {
+                    //switch model and display accordingly
+                    if(modelChoosen == "num")
+                        modelChoosen = "char";
+                    else
+                        modelChoosen = "num";
+                }
+            }
+            else
+            {
+                modelButtonColor = GRAY;
+            }
 
             if (mouseOverButton)
             {
@@ -113,7 +155,12 @@ public:
                     buttonClicked = true;
                     isAnimating = true;
                     animationTime = GetTime();
-                    pair<int, double> p = NN->predict(predict_X);
+                    pair<int, double> p;
+                    if(modelChoosen == "num")
+                        p = NN_num->predict(predict_X);
+                    else
+                        p = NN_char->predict(predict_X);
+                        
                     PREDICTION = p.first;
                     CONFIDENCE =static_cast<float>(p.second);
                 }
@@ -153,7 +200,7 @@ public:
                 inputImgRect = {0, 0, static_cast<float>(inputTexture.width), static_cast<float>(inputTexture.height)};
                 UnloadImage(outImg); // Unload image data from RAM as it's now in VRAM
                 Danfe::extractPixels(inputText, predict_X);
-                Utils::normalizeData(predict_X);
+                // Utils::normalizeData(predict_X);
                 inputImageLoaded = true;
             }
             if (IsKeyPressed(KEY_TAB))
@@ -168,7 +215,7 @@ public:
             ClearBackground(lightGreen);
             Graphics::drawNetwork(isAnimating, predictionMade);
             DrawTexturePro(inputImageLoaded ? inputTexture : uploadTexture, inputImageLoaded ? inputImgRect : uploadRect, destRect, origin, 0.0f, WHITE);
-            DrawTexturePro(isAnimating ? outputTextureNum[GetRandomValue(0, 9)] : predictionMade ? outputTextureNum[PREDICTION]
+            DrawTexturePro(isAnimating ? modelChoosen == "num" ? outputTextureNum[GetRandomValue(0, 9)] : outputTextureChar[GetRandomValue(0,35)] : predictionMade ? modelChoosen == "num" ? outputTextureNum[PREDICTION] : outputTextureChar[PREDICTION]
                                                                                                  : qmTexture,
                            isAnimating ? sourceRect : predictionMade ? sourceRect
                                                                      : qmRect,
@@ -180,7 +227,11 @@ public:
             DrawLine(15, 530, 150, 530, WHITE);
             DrawRectangleRec(buttonRect, buttonColor);
             DrawRectangleLinesEx(buttonRect, 2, BLACK);
-            DrawTextEx(customFont, "Make Prediction!", Vector2({buttonRect.x + 50, buttonRect.y + 10}), 32, 1, WHITE);
+            DrawRectangleRec(modelButtonRect, modelButtonColor);
+            DrawRectangleLinesEx(modelButtonRect, 2, BLACK);
+            DrawTextEx(customFont, "Make Prediction", Vector2({buttonRect.x + 50, buttonRect.y + 10}), 32, 1,!mouseOverButton ? WHITE : BLACK);
+            DrawTextEx(customFont, modelChoosen == "num" ? "Digits Recognition" : "Letter Recognition", Vector2({modelButtonRect.x + 15, modelButtonRect.y + 10}), 32, 1, !mouseOverModelButton ? WHITE : BLACK);
+            DrawTexturePro(switchTexture, switchRect, swtichDestRect, origin, 0.0f, WHITE);
 
             if (buttonClicked)
             {

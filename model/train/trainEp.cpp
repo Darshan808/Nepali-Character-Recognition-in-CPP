@@ -72,7 +72,7 @@ int main()
 {
     int max_batches = 477; // 477(128) 264(64)
     load_val_data();
-    NeuralNetwork *NN = new NeuralNetwork({1024, 128, 64, 36}, 0.01);
+    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 36}, 0.01);
     batch_loader(max_batches);
     int EPOCH = 10;
     int i_epoch = 0;
@@ -87,7 +87,7 @@ int main()
         } 
         i_epoch++;
     }
-    NN->saveNetwork("C:\\Users\\Darshan\\Desktop\\OOP project\\model\\saved\\alpha_big.txt");
+    NN->saveNetwork("C:\\Users\\Darshan\\Desktop\\OOP project\\model\\saved\\bin.txt");
     delete NN;
     std::cout << "All batches loaded and trained.\n";
 
