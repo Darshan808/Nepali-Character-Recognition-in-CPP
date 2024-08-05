@@ -120,8 +120,8 @@ public:
         predictionMade = false;
         PREDICTION = 0;
         CONFIDENCE = -1;
-        NN_num = new NeuralNetwork({1024, 64, 32, 10}, 0.0001, "man.txt");
-        NN_char = new NeuralNetwork({1024, 10, 36}, 0.001, "alpha.txt");
+        NN_num = new NeuralNetwork({1024, 64, 32, 10}, 0.0001, "number.txt");
+        NN_char = new NeuralNetwork({1024, 128, 64, 32, 36}, 0.001, "alphabet.txt");
 
         while (WindowShouldClose() == false)
         {
@@ -193,7 +193,8 @@ public:
             }
             if (IsKeyPressed(KEY_ENTER) && !inputText.empty())
             {
-                string filename = "C:\\Users\\Darshan\\Desktop\\OOP project\\assets\\input\\" + inputText;
+                predictionMade = false;
+                string filename = "C:\\Users\\Darshan\\Desktop\\OOP project\\assets\\input\\" + inputText + ".png";
                 const char *filename_cstr = filename.c_str();
                 outImg = LoadImage(filename_cstr);
                 inputTexture = LoadTextureFromImage(outImg);

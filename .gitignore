@@ -1,5 +1,7 @@
 *.exe
-piethorn
 build
 .vscode
 model/metrics/*txt
+assets/processed/*.png
+assets/pixels/*txt
+assets/input_past

@@ -20,7 +20,6 @@ std::vector<int> Y_val_2;
 int i_batch = 1;
 
 // Always remember to change one hot encoding!! (not required any more)
-
 const string TYPE = "alpha";
 
 void load_val_data()
