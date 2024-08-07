@@ -20,4 +20,4 @@ public:
     static void normalizeData(std::vector<std::vector<double>> &data);
 };
 
-#endif // UTILS_H
+#endif 

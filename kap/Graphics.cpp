@@ -1,4 +1,4 @@
-#include "Graphics2.h"
+#include "Graphics.h"
 
 const vector<Color> Graphics::colors{BLUE, RED, GREEN, YELLOW, ORANGE, PURPLE, PINK, SKYBLUE, LIME, GOLD, VIOLET, DARKBLUE, DARKGREEN, DARKPURPLE, BEIGE, BROWN, GRAY, MAGENTA, MAROON, RAYWHITE};
 

@@ -1,4 +1,4 @@
-#include <include/NeuralNetwork2.h>
+#include <include/NeuralNetwork.h>
 #include <vector>
 #include <algorithm>
 #include <include/Utils.h>

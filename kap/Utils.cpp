@@ -1,4 +1,4 @@
-#include "Utils2.h"
+#include "Utils.h"
 #include <bits/stdc++.h>
 
 std::vector<double> Utils::generateRandomVector(size_t size, double min, double max)

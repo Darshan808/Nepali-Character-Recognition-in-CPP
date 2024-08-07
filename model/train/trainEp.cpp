@@ -5,8 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <string>
-#include "../../include/NeuralNetwork.h"
-#include "../../include/Danfe.h"
+#include "../../include/bup/NeuralNetwork.h"
+#include "../../include/bup/Danfe.h"
 
 std::vector<std::pair<std::vector<std::vector<double>>, std::vector<int>>> batch_vector;
 bool done_loading = false;
@@ -20,7 +20,7 @@ std::vector<int> Y_val_2;
 int i_batch = 1;
 
 // Always remember to change one hot encoding!! (not required any more)
-const string TYPE = "alpha";
+const string TYPE = "numeric";
 
 void load_val_data()
 {
@@ -69,11 +69,11 @@ void train_model(NeuralNetwork *NN, const std::pair<std::vector<std::vector<doub
 
 int main()
 {
-    int max_batches = 477; // 477(128) 264(64)
+    int max_batches = 264; // 477(128) 264(64)
     load_val_data();
-    NeuralNetwork *NN = new NeuralNetwork({1024, 10, 36}, 0.01);
+    NeuralNetwork *NN = new NeuralNetwork({1024, 64, 32, 10}, 0.00000, "number.txt");
     batch_loader(max_batches);
-    int EPOCH = 10;
+    int EPOCH = 1;
     int i_epoch = 0;
     while (i_epoch<EPOCH)
     {
@@ -85,8 +85,9 @@ int main()
             train_model(NN, batch, it==batch_vector.size()-1);
         } 
         i_epoch++;
+        if(!(i_epoch%10)) NN->scheduleLR();
     }
-    NN->saveNetwork("C:\\Users\\Darshan\\Desktop\\OOP project\\model\\saved\\bin.txt");
+    NN->saveNetwork("C:\\Users\\Darshan\\Desktop\\OOP project\\model\\saved\\numbers.txt");
     delete NN;
     std::cout << "All batches loaded and trained.\n";
 

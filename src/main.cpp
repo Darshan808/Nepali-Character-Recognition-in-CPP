@@ -4,10 +4,10 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <include/Graphics.h>
-#include <include/NeuralNetwork.h>
-#include <include/Danfe.h>
-#include <include/Utils.h>
+#include <include/bup/Graphics.h>
+#include <include/bup/NeuralNetwork.h>
+#include <include/bup/Danfe.h>
+#include <include/bup/Utils.h>
 
 using namespace std;
 
